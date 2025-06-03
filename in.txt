@@ -1,0 +1,5 @@
+INC 10
+INC 20
+INC 40
+INC 5
+IMP 4
