@@ -98,9 +98,8 @@ vector<Operation> parser_text(string data_path){
     return result;
 }
 
-void WriteOut(string text){
-    cout<<text<<endl;
-    std::ofstream file(out_path, std::ios::app); 
+void WriteText(string text){
+    std::ofstream file(out_path); 
 
     if (file.is_open()) {
         file << text << "\n"; 
@@ -113,7 +112,7 @@ void WriteOut(string text){
 
 }
 
-string VectorPairsToString(vector<pair<int,int>>& vec){
+string VectorPairsToString(vector<pair<int,int>> vec){
     string result;
     for(pair<int,int> ints : vec){
         result.append(to_string(ints.first));
@@ -121,20 +120,41 @@ string VectorPairsToString(vector<pair<int,int>>& vec){
         result.append(to_string(ints.second));
         result.append(" ");
     }
-
+    result.append("\n");
     return result;
 }
 
 void OperateTree(BinarySearchTree* tree, vector<Operation> operations){
-
+    
+    string text = "";
+    
     for(Operation operation : operations){
         if(get<Command>(operation) == INC) Insert(tree, get<1>(operation));
+
         if(get<Command>(operation) == REM) Remove(tree, get<1>(operation));
+
         if(get<Command>(operation) == IMP){
-            vector<pair<int,int>> x = DFS(tree, get<2>(operation));
-            WriteOut(VectorPairsToString(x));
+            string dfs_str = VectorPairsToString(DFS(tree, get<2>(operation)));
+            text.append("IMP ");
+            text.append(to_string(get<2>(operation)));
+            text.append("\n");
+            text.append(dfs_str);
         } 
+
+        if(get<Command>(operation) == SUC) {
+            string succ_str = to_string(Sucessor(tree, get<1>(operation), get<2>(operation)));  
+            text.append("SUC ");
+            text.append(to_string(get<1>(operation)));
+            text.append(" ");
+            text.append(to_string(get<2>(operation)));
+            text.append("\n");
+            text.append(succ_str);
+            text.append("\n");
+        };
+
     }
+
+    WriteText(text);
 
 
 };

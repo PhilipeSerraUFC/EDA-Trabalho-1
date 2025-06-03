@@ -1,7 +1,8 @@
 #include <bits/stdc++.h>
+#include<vector>
 #define MAX_VERSION 100
 #define NONE -1000
-#define FIELD_IS_MODIFIED(x) if(this->modification->version <= version) if(this->modification->field = x) 
+#define INF numeric_limits<int>::infinity()
 
 //TODO RETIRAR O CAMPO PARENTE E VER COMO ATUALIZO OS PAIS 
 //FAÇO ISSO COLOCANDO O CAMINHO FEITO NA FUNÇÃO DE UPDATE
@@ -59,7 +60,7 @@ class Node {
         int GetKey(int version){
             if(this->modification == nullptr) return this->key;
 
-            FIELD_IS_MODIFIED(NodeField::key) {return this->modification->key;}
+            if(this->modification->version <= version) if(this->modification->field == NodeField::key) {return this->modification->key;}
 
             return this->key;
 
@@ -68,8 +69,7 @@ class Node {
         Node* GetLeft(int version){
             if(this->modification == nullptr) return this->left;
 
-            FIELD_IS_MODIFIED(NodeField::left) {
-                cout<<"SIM"<<key<<" " <<modification->field<<endl;
+            if(this->modification->version <= version) if(this->modification->field == NodeField::left) {
                 return this->modification->pointer ; }
 
             return this->left;
@@ -78,9 +78,8 @@ class Node {
         Node* GetRight(int version){
             if(this->modification == nullptr) return this->right;
 
-            FIELD_IS_MODIFIED(NodeField::right) { 
-                cout<<"SIM TAMBME"<<key<<" " <<modification->field<<endl;
-                return this->modification->pointer; 
+            if(this->modification->version <= version) if(this->modification->field == NodeField::right) { 
+                return this->modification->pointer ;
             }
 
             return this->right;
@@ -109,7 +108,7 @@ struct BinarySearchTree {
 
 };
 
-void UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, Node* pointer, vector<Node*> path){
+void UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, Node* pointer, vector<Node*>& path){
 
     if(node == nullptr) return;
 
@@ -119,10 +118,7 @@ void UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, No
         
         if(field == key) node->SetModification(version, field, key, nullptr);
         else node->SetModification(version, field, NONE, pointer);
-
-        cout<<"NO" << node->GetKey(version) << node->GetLeft(version)->GetKey(version) << "\n" << node->GetRight(version)->GetKey(version)<<endl;
         tree->roots[version] = tree->roots[version-1];
-    
         return;
     }
 
@@ -136,7 +132,7 @@ void UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, No
     if(field == NodeField::left) new_node = new Node(node_key, pointer, node_right);
     if(field == NodeField::right) new_node = new Node(node_key, node_left, pointer);
 
-    if(node == tree->roots[version]){
+    if(node == tree->roots[version-1]){
         tree->roots[version] = new_node;
         return;
     }
@@ -157,7 +153,6 @@ void Insert(BinarySearchTree* tree, int key){
     
     Node* root = tree->roots[tree->last_version];
     tree->last_version += 1;
-
     
     if(root == nullptr){
         tree->roots[tree->last_version] = new Node(key, nullptr, nullptr);
@@ -174,7 +169,7 @@ void Insert(BinarySearchTree* tree, int key){
     
     vector<Node*> path = {};
 
-    while(current_node->GetRight(version) != nullptr || current_node->GetLeft(version) != nullptr){
+    do{
         if(key >= current_node->GetKey(version)) {
 
             if(current_node->GetRight(version) == nullptr){
@@ -199,10 +194,11 @@ void Insert(BinarySearchTree* tree, int key){
 
         }
         
-    }
+    }while(current_node->GetRight(version) != nullptr || current_node->GetLeft(version) != nullptr);
 
     //Criação do novo nó
     new_node = new Node(key, nullptr, nullptr);
+
     //E atualização do pai
     UpdateNode(current_node, tree, son_field, current_node->GetKey(version), new_node, path);
     
@@ -328,6 +324,29 @@ void Remove(BinarySearchTree* tree, int key){
     }
 }
 
+int Sucessor(BinarySearchTree* tree, int key, int version){
+
+    if(version > tree->last_version) version = tree->last_version;
+
+    Node * root = tree->roots[version];
+
+    Node* current_node = root;
+    int sucessor = INF;
+
+    do {
+        //Aqui estou considerando que o sucessor deve ser maior que a chave dada
+        if(key >= current_node->GetKey(version)) current_node = current_node->GetRight(version);
+
+        if(key < current_node->GetKey(version)){
+            sucessor = current_node->GetKey(version);
+            current_node = current_node->GetLeft(version);
+        }
+
+    } while(current_node != nullptr);
+
+    return sucessor;
+}
+
 void DFS_REC(Node* node, int version, int deepness, vector<pair<int,int>>& dfs_vector) {
         /*Função recursiva auxiliar que será usada para utilizar a DFS sem necessidade de dar 
             profundidade=0 como um dos parametros na função */
@@ -342,6 +361,7 @@ void DFS_REC(Node* node, int version, int deepness, vector<pair<int,int>>& dfs_v
 vector<pair<int,int>> DFS(BinarySearchTree* tree, int version){
         /*Função que retorna uma array com o par (Chave, profundidade de um nó) */
         
+        if(version > tree->last_version) version = tree->last_version;
         
         Node* root = tree->roots[version];
         vector<pair<int,int>> dfs_vector = {};
