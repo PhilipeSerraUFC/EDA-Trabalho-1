@@ -170,6 +170,7 @@ void Insert(BinarySearchTree* tree, int key){
     vector<Node*> path = {};
 
     do{
+
         if(key >= current_node->GetKey(version)) {
 
             if(current_node->GetRight(version) == nullptr){
@@ -177,6 +178,7 @@ void Insert(BinarySearchTree* tree, int key){
                 break;
             } 
 
+            son_field = NodeField::right;
             path.push_back(current_node);
             current_node = current_node->GetRight(version);
 
@@ -189,15 +191,18 @@ void Insert(BinarySearchTree* tree, int key){
                 break;
             } 
 
+            son_field = NodeField::left;
             path.push_back(current_node);
             current_node = current_node->GetLeft(version);
 
         }
         
-    }while(current_node->GetRight(version) != nullptr || current_node->GetLeft(version) != nullptr);
+    }while(true);
 
     //Criação do novo nó
     new_node = new Node(key, nullptr, nullptr);
+
+
 
     //E atualização do pai
     UpdateNode(current_node, tree, son_field, current_node->GetKey(version), new_node, path);
@@ -206,6 +211,8 @@ void Insert(BinarySearchTree* tree, int key){
 }
 
 vector<Node*> FindPathToSmallest(Node* root, int version){
+
+    if(root == nullptr) return {};
 
     Node* current_node = root;
     vector<Node*> path = {current_node};
@@ -226,23 +233,21 @@ void Remove(BinarySearchTree* tree, int key){
     //Se está vazia
     if(root == nullptr) return;
 
-
-    tree->last_version += 1;
     int version = tree->last_version;
-
     //Procurando onde está o nó
     Node* current_node = root;
     NodeField son_field;
     vector<Node*> path;
+    bool found_node = false;
 
-    while(current_node->GetRight(version) != nullptr || current_node->GetLeft(version) != nullptr){
+    do{
         if(key > current_node->GetKey(version)) {
 
             if(current_node->GetRight(version) == nullptr) return; //Nó não está na arvore
 
             path.push_back(current_node);
             current_node = current_node->GetRight(version);
-            son_field == NodeField::right;
+            son_field = NodeField::right;
 
         }
 
@@ -252,15 +257,20 @@ void Remove(BinarySearchTree* tree, int key){
 
             path.push_back(current_node);
             current_node = current_node->GetLeft(version);
-            son_field == NodeField::left;
+            son_field = NodeField::left;
 
         }
 
         if(key == current_node->GetKey(version)) {
+            found_node = true;
             break;
         }
         
-    }
+    }while(true);
+
+    if(!found_node) return; //Não encontrou nenhum nó com valor de chave, não vamos atualizar a versão da árvore
+    tree->last_version += 1;
+    version += 1;
 
     if(current_node->GetLeft(version) == nullptr && current_node->GetRight(version) == nullptr){
         //Se é folha
@@ -318,9 +328,9 @@ void Remove(BinarySearchTree* tree, int key){
         smallest_path.pop_back();
         Node* second_smallest = smallest_path.back();
 
-        UpdateNode(current_node, tree, NodeField::key, smallest->GetKey(version), nullptr, path);
-        UpdateNode(second_smallest, tree, NodeField::left, NONE, nullptr, path);
-        
+
+        UpdateNode(second_smallest, tree, NodeField::left, NONE, nullptr, smallest_path);
+        UpdateNode(current_node, tree, NodeField::key, smallest->GetKey(version), nullptr, path);        
     }
 }
 
