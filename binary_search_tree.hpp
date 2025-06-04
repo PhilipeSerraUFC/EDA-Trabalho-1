@@ -108,9 +108,9 @@ struct BinarySearchTree {
 
 };
 
-void UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, Node* pointer, vector<Node*>& path){
-
-    if(node == nullptr) return;
+Node* UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, Node* pointer, vector<Node*>& path){
+    /*atualiza a arvore e Retorna o nó atualizado*/
+    if(node == nullptr) return nullptr;
 
     int version = tree->last_version;
 
@@ -123,7 +123,7 @@ void UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, No
 
         if(tree->roots[version] == nullptr) tree->roots[version] = tree->roots[version-1];
         
-        return;
+        return node;
     }
 
     Node* new_node;
@@ -138,7 +138,7 @@ void UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, No
 
     if(node == tree->roots[version-1]){
         tree->roots[version] = new_node;
-        return;
+        return new_node;
     }
 
     Node* node_parent = path.back();
@@ -150,6 +150,7 @@ void UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, No
     if(node == node_parent->GetRight(version))
         UpdateNode(node_parent, tree, NodeField::right, NONE, new_node, path);
 
+    return new_node;
 
 }
 
@@ -323,8 +324,9 @@ void Remove(BinarySearchTree* tree, int key){
         vector<Node*> smallest_path = FindPathToSmallest(current_node->GetRight(version), tree->last_version);
 
         if(smallest_path.size() == 1){
-            UpdateNode(current_node, tree, NodeField::key, smallest_path[0]->GetKey(version), nullptr, path);
-            UpdateNode(current_node, tree, NodeField::right, NONE, nullptr, path);
+            Node* new_current_node = UpdateNode(current_node, tree, NodeField::right, NONE, nullptr, path);
+            UpdateNode(new_current_node, tree, NodeField::key, smallest_path[0]->GetKey(version), nullptr, path);
+
             return;
         }
 
@@ -335,7 +337,7 @@ void Remove(BinarySearchTree* tree, int key){
         full_path.insert(full_path.end(), path.begin(), path.end());
         full_path.insert(full_path.end(), smallest_path.begin(), smallest_path.end());
 
-        UpdateNode(second_smallest, tree, NodeField::left, NONE, nullptr, full_path);
+        Node* new_current_node = UpdateNode(second_smallest, tree, NodeField::left, NONE, nullptr, full_path);
         UpdateNode(current_node, tree, NodeField::key, smallest->GetKey(version), nullptr, path);        
     }
 }
