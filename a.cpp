@@ -4,12 +4,10 @@ using namespace std;
 
 const string data_path = "in.txt";
 
+int a(int x = 3) {return x;}
+
 int main(){
-    int x = 3;
-    do{
-        cout<<--x<<endl;
-        if(x == 2) break; }
-    while(x > 0);
+    cout<<a(2)<<endl;
 
     return 0;
 

@@ -114,11 +114,15 @@ void UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, No
 
     int version = tree->last_version;
 
+
+    
     if (node->GetModification() == nullptr){
         
-        if(field == key) node->SetModification(version, field, key, nullptr);
+        if(field == NodeField::key) node->SetModification(version, field, key, nullptr);
         else node->SetModification(version, field, NONE, pointer);
-        tree->roots[version] = tree->roots[version-1];
+
+        if(tree->roots[version] == nullptr) tree->roots[version] = tree->roots[version-1];
+        
         return;
     }
 
@@ -327,9 +331,11 @@ void Remove(BinarySearchTree* tree, int key){
         Node* smallest = smallest_path.back();
         smallest_path.pop_back();
         Node* second_smallest = smallest_path.back();
+        vector<Node*> full_path = {};
+        full_path.insert(full_path.end(), path.begin(), path.end());
+        full_path.insert(full_path.end(), smallest_path.begin(), smallest_path.end());
 
-
-        UpdateNode(second_smallest, tree, NodeField::left, NONE, nullptr, smallest_path);
+        UpdateNode(second_smallest, tree, NodeField::left, NONE, nullptr, full_path);
         UpdateNode(current_node, tree, NodeField::key, smallest->GetKey(version), nullptr, path);        
     }
 }
