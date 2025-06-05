@@ -14,7 +14,7 @@ int main(){
 
     OperateTree(tree, operations);
 
-    cout<<"Operacoes na arvores realizada, veja o arquivo out.txt";
+    cout<<"Operacoes na arvore realizada, veja o arquivo out.txt";
     return 0;
 
 }
