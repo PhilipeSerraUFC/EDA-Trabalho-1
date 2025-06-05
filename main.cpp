@@ -2,15 +2,19 @@
 
 using namespace std;
 
-const string data_path = "in.txt";
-
 int main(){
+
+    string data_path;
+
+    cout << "Insira o caminho do arquivo de entrada: ";
+    cin >> data_path;
 
     vector<Operation> operations = parser_text(data_path);
     BinarySearchTree* tree = new BinarySearchTree();
 
     OperateTree(tree, operations);
 
+    cout<<"Operacoes na arvores realizada, veja o arquivo out.txt";
     return 0;
 
 }

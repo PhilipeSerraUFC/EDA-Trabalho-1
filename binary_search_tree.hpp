@@ -136,7 +136,7 @@ Node* UpdateNode(Node* node, BinarySearchTree* tree, NodeField field, int key, N
     if(field == NodeField::left) new_node = new Node(node_key, pointer, node_right);
     if(field == NodeField::right) new_node = new Node(node_key, node_left, pointer);
 
-    if(node == tree->roots[version-1]){
+    if(node == tree->roots[version-1] || node == tree->roots[version]){
         tree->roots[version] = new_node;
         return new_node;
     }
@@ -229,6 +229,39 @@ vector<Node*> FindPathToSmallest(Node* root, int version){
 
     return path;
 
+}
+
+vector<Node*> FindPath(BinarySearchTree* tree, int key, int version){
+    Node* current_node = tree->roots[version];
+
+    if(current_node == nullptr) return {}; 
+
+
+    vector<Node*> path = {}; 
+
+    while(current_node != nullptr){
+        if(key > current_node->GetKey(version)){
+            path.push_back(current_node);
+            current_node = current_node->GetRight(version);
+        }
+
+        if(key < current_node->GetKey(version)){
+            path.push_back(current_node);
+            current_node = current_node->GetLeft(version);
+        }        
+
+        if(current_node->GetKey(version) == key){
+            path.push_back(current_node);
+            break;
+        }               
+
+    }
+
+    if(current_node == nullptr){
+        return {};
+    }
+
+    return path;
 }
 
 void Remove(BinarySearchTree* tree, int key){
@@ -324,7 +357,8 @@ void Remove(BinarySearchTree* tree, int key){
         vector<Node*> smallest_path = FindPathToSmallest(current_node->GetRight(version), tree->last_version);
 
         if(smallest_path.size() == 1){
-            Node* new_current_node = UpdateNode(current_node, tree, NodeField::right, NONE, nullptr, path);
+
+            Node* new_current_node = UpdateNode(current_node, tree, NodeField::right, NONE, smallest_path[0]->GetRight(version), path);
             UpdateNode(new_current_node, tree, NodeField::key, smallest_path[0]->GetKey(version), nullptr, path);
 
             return;
@@ -333,12 +367,15 @@ void Remove(BinarySearchTree* tree, int key){
         Node* smallest = smallest_path.back();
         smallest_path.pop_back();
         Node* second_smallest = smallest_path.back();
-        vector<Node*> full_path = {};
-        full_path.insert(full_path.end(), path.begin(), path.end());
-        full_path.insert(full_path.end(), smallest_path.begin(), smallest_path.end());
 
-        Node* new_current_node = UpdateNode(second_smallest, tree, NodeField::left, NONE, nullptr, full_path);
-        UpdateNode(current_node, tree, NodeField::key, smallest->GetKey(version), nullptr, path);        
+
+
+        UpdateNode(current_node, tree, NodeField::key, smallest->GetKey(version), nullptr, path);     
+        
+        vector<Node*> full_path = FindPath(tree, second_smallest->GetKey(version), version);
+        full_path.pop_back();
+
+        UpdateNode(second_smallest, tree, NodeField::left, NONE, smallest->GetRight(version), full_path);  
     }
 }
 
